@@ -1,0 +1,38 @@
+name: Generate JSON
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3-distutils build-essential
+        pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Generate JSON
+      run: python generate_posts_json.py
+
+    - name: Commit and push changes 
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add content/posts.json
+        git diff --cached --quiet || git commit -m "Auto-generated posts.json"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
